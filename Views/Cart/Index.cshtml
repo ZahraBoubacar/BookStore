@@ -1,0 +1,129 @@
+@model CartViewModel
+@{
+    ViewData["Title"] = "Mon Panier";
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+}
+
+<div class="cart-page">
+    <div class="container">
+        <div class="breadcrumb"><a href="/">Accueil</a> <span>/</span> <span>Mon Panier</span></div>
+        <h1 class="page-title">Mon Panier
+            @if (Model.Cart.TotalItems > 0) { <span class="cart-count-badge">@Model.Cart.TotalItems article(s)</span> }
+        </h1>
+
+        @if (!Model.Cart.Items.Any())
+        {
+            <div class="empty-cart">
+                <div class="empty-cart-icon">🛒</div>
+                <h2>Votre panier est vide</h2>
+                <p>Vous n'avez pas encore ajouté de livres.</p>
+                <a href="/livres" class="btn btn--primary">Explorer le catalogue</a>
+            </div>
+            @if (Model.Recommendations.Any())
+            {
+                <div class="cart-recommendations">
+                    <h2 class="section-title-sm">Nos suggestions</h2>
+                    <div class="books-grid">
+                        @foreach (var book in Model.Recommendations) { <partial name="_BookCard" model="book" /> }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="cart-layout">
+                <div class="cart-items">
+                    @foreach (var item in Model.Cart.Items)
+                    {
+                        <div class="cart-item">
+                            <a href="/livres/details/@item.Book.Slug" class="cart-item-img-link">
+                                <img src="@item.Book.CoverImageUrl" alt="@item.Book.Title" class="cart-item-cover" onerror="this.src='/images/book-placeholder.svg'" />
+                            </a>
+                            <div class="cart-item-info">
+                                <p class="cart-item-category">@item.Book.Category.Name</p>
+                                <h3 class="cart-item-title"><a href="/livres/details/@item.Book.Slug">@item.Book.Title</a></h3>
+                                <p class="cart-item-author">@item.Book.Author.Name</p>
+                                <div class="cart-item-actions">
+                                    <form action="/panier/Update" method="post" class="qty-form">
+                                        <input type="hidden" name="bookId" value="@item.BookId" />
+                                        @Html.AntiForgeryToken()
+                                        <div class="quantity-picker quantity-picker--sm">
+                                            <button type="submit" name="quantity" value="@(item.Quantity - 1)" class="qty-btn">−</button>
+                                            <span class="qty-display">@item.Quantity</span>
+                                            <button type="submit" name="quantity" value="@(item.Quantity + 1)" class="qty-btn">+</button>
+                                        </div>
+                                    </form>
+                                    <form action="/panier/Remove" method="post">
+                                        <input type="hidden" name="bookId" value="@item.BookId" />
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-remove">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                            Retirer
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="cart-item-price">
+                                <span class="cart-item-total">@CurrencyHelper.FormatTND(item.Total)</span>
+                                <span class="cart-item-unit">@CurrencyHelper.FormatTND(item.UnitPrice) / unité</span>
+                            </div>
+                        </div>
+                    }
+                    <div class="cart-footer-actions">
+                        <a href="/livres" class="btn btn--ghost" style="color:var(--charcoal);border-color:var(--border)">← Continuer mes achats</a>
+                        <form action="/panier/Clear" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-clear-cart">Vider le panier</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="cart-summary">
+                    <div class="summary-card">
+                        <h2 class="summary-title">Récapitulatif</h2>
+                        <div class="summary-lines">
+                            <div class="summary-line">
+                                <span>Sous-total (@Model.Cart.TotalItems articles)</span>
+                                <span>@CurrencyHelper.FormatTND(Model.Cart.Subtotal)</span>
+                            </div>
+                            <div class="summary-line">
+                                <span>Livraison</span>
+                                <span class="@(Model.Cart.Shipping == 0 ? "free-shipping" : "")">
+                                    @(Model.Cart.Shipping == 0 ? "Gratuite 🎉" : CurrencyHelper.FormatTND(Model.Cart.Shipping))
+                                </span>
+                            </div>
+                            @if (Model.Cart.Shipping > 0)
+                            {
+                                <div class="summary-hint">
+                                    Encore @CurrencyHelper.FormatTND(50 - Model.Cart.Subtotal) pour la livraison gratuite
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width:@(Math.Min(100,(double)Model.Cart.Subtotal/50*100))%"></div>
+                                    </div>
+                                </div>
+                            }
+                            <div class="summary-divider"></div>
+                            <div class="summary-line summary-line--total">
+                                <span>Total</span><span>@CurrencyHelper.FormatTND(Model.Cart.Total)</span>
+                            </div>
+                        </div>
+                        <a href="/panier/Checkout" class="btn btn--primary btn--full btn--lg">Passer la commande →</a>
+                        <p class="summary-secure">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                            Paiement 100% sécurisé
+                        </p>
+                        <div class="payment-icons">
+                            <span class="pay-icon">💳</span><span class="pay-icon">🏦</span><span class="pay-icon">📱</span>
+                        </div>
+                    </div>
+                    <div class="promo-code-card">
+                        <h3>Code promo</h3>
+                        <div class="promo-input-row">
+                            <input type="text" placeholder="Votre code" class="promo-input" />
+                            <button class="btn btn--outline">Appliquer</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

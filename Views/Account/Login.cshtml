@@ -1,0 +1,79 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Connexion";
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="/" class="auth-logo">📚 Kitab</a>
+            <h1 class="auth-title">Bon retour !</h1>
+            <p class="auth-subtitle">Connectez-vous pour accéder à votre espace.</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert--error">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <p>@error.ErrorMessage</p>
+                }
+            </div>
+        }
+
+        <form action="/compte/connexion" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <div class="form-group">
+                <label asp-for="Email">Email</label>
+                <input asp-for="Email" class="form-control" placeholder="votre@email.fr" autocomplete="email" />
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password">Mot de passe</label>
+                <div class="input-with-toggle">
+                    <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="current-password" id="pwd" />
+                    <button type="button" class="toggle-pwd" onclick="togglePwd('pwd', this)">👁</button>
+                </div>
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+
+            <div class="form-check">
+                <input asp-for="RememberMe" type="checkbox" class="form-checkbox" id="remember" />
+                <label for="remember">Se souvenir de moi</label>
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--full btn--lg">Se connecter</button>
+        </form>
+
+        <div class="auth-demo">
+            <p class="auth-demo-label">Compte de démonstration</p>
+            <code>marie@exemple.fr</code> / <code>password123</code>
+        </div>
+
+        <p class="auth-switch">
+            Pas encore de compte ?
+            <a href="/compte/inscription">Créer un compte →</a>
+        </p>
+    </div>
+
+    <div class="auth-visual">
+        <div class="auth-quote">
+            <blockquote>« Un lecteur vit mille vies avant de mourir. L'homme qui ne lit jamais n'en vit qu'une. »</blockquote>
+            <cite>— George R.R. Martin</cite>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function togglePwd(id, btn) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.textContent = input.type === 'password' ? '👁' : '🙈';
+}
+</script>
+}

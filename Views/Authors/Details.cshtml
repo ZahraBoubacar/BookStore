@@ -1,0 +1,114 @@
+@model BookStore.Models.ViewModels.AuthorDetailViewModel
+@{
+    ViewData["Title"] = Model.Author.Name;
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+    var author = Model.Author;
+    var books  = Model.Books;
+}
+
+<div class="author-detail-page">
+    <!-- Author Hero -->
+    <div class="author-detail-hero">
+        <div class="author-detail-hero-bg"></div>
+        <div class="container">
+            <nav class="breadcrumb" style="color:rgba(250,247,242,0.45)">
+                <a href="/" style="color:rgba(250,247,242,0.6)">Accueil</a> <span>/</span>
+                <a href="/auteurs" style="color:rgba(250,247,242,0.6)">Auteurs</a> <span>/</span>
+                <span style="color:var(--cream)">@author.Name</span>
+            </nav>
+
+            <div class="author-detail-hero-inner">
+                <div class="author-detail-photo-wrap">
+                    <img src="@author.PhotoUrl" alt="@author.Name" class="author-detail-photo"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                    <div class="author-detail-fallback">@author.Name[0]</div>
+                </div>
+                <div class="author-detail-hero-info">
+                    <p class="author-detail-label">Auteur</p>
+                    <h1 class="author-detail-name">@author.Name</h1>
+                    <p class="author-detail-meta">
+                        <span>🌍 @author.Nationality</span>
+                        <span>📅 Né en @author.BirthYear</span>
+                        <span>📚 @books.TotalCount livre(s)</span>
+                    </p>
+                    @if (author.Awards.Any())
+                    {
+                        <div class="author-detail-awards">
+                            @foreach (var award in author.Awards)
+                            {
+                                <span class="award">🏆 @award</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="padding-top: 56px; padding-bottom: 72px;">
+        <div class="author-detail-layout">
+            <!-- Bio -->
+            <aside class="author-detail-sidebar">
+                <div class="author-bio-card">
+                    <h2 class="author-bio-title">Biographie</h2>
+                    <p class="author-bio-text">@author.Bio</p>
+                </div>
+            </aside>
+
+            <!-- Books -->
+            <div class="author-detail-books">
+                <div class="section-header" style="margin-bottom: 28px;">
+                    <h2 class="section-title">
+                        Œuvres disponibles
+                        <span class="books-count-badge">@books.TotalCount</span>
+                    </h2>
+                    @if (books.TotalPages > 1)
+                    {
+                        <span class="results-page-info">
+                            Page @books.PageIndex / @books.TotalPages
+                        </span>
+                    }
+                </div>
+
+                @if (books.Items.Any())
+                {
+                    <div class="books-grid books-grid--catalog">
+                        @foreach (var book in books.Items)
+                        {
+                            <partial name="_BookCard" model="book" />
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (books.TotalPages > 1)
+                    {
+                        <div class="pagination">
+                            @if (books.HasPreviousPage)
+                            {
+                                <a href="/auteurs/details/@author.Id?page=@(books.PageIndex - 1)"
+                                   class="page-btn">← Précédent</a>
+                            }
+                            @for (int i = 1; i <= books.TotalPages; i++)
+                            {
+                                <a href="/auteurs/details/@author.Id?page=@i"
+                                   class="page-btn @(i == books.PageIndex ? "page-btn--active" : "")">@i</a>
+                            }
+                            @if (books.HasNextPage)
+                            {
+                                <a href="/auteurs/details/@author.Id?page=@(books.PageIndex + 1)"
+                                   class="page-btn">Suivant →</a>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p>Aucun livre disponible pour cet auteur.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

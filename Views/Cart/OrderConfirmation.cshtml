@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Commande confirmée";
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+    var orderNum = TempData["OrderId"]?.ToString() ?? ("KT-" + DateTime.Now.ToString("yyMMdd") + "-" + new Random().Next(1000, 9999));
+}
+
+<div class="confirmation-page">
+    <div class="container">
+        <div class="confirmation-card">
+            <div class="confirmation-icon">✅</div>
+            <h1 class="confirmation-title">Commande confirmée !</h1>
+            <p class="confirmation-subtitle">
+                Merci pour votre achat chez <strong>Kitab</strong>. 
+                Un email de confirmation vous a été envoyé.
+            </p>
+            <div class="confirmation-number">
+                <span class="conf-label">Numéro de commande</span>
+                <span class="conf-value">@orderNum</span>
+            </div>
+            <div class="confirmation-steps">
+                <div class="conf-step conf-step--done">
+                    <div class="conf-step-dot">✓</div>
+                    <span>Commande reçue</span>
+                </div>
+                <div class="conf-step-line"></div>
+                <div class="conf-step conf-step--active">
+                    <div class="conf-step-dot">⚙️</div>
+                    <span>En préparation</span>
+                </div>
+                <div class="conf-step-line"></div>
+                <div class="conf-step">
+                    <div class="conf-step-dot">🚚</div>
+                    <span>Expédié</span>
+                </div>
+                <div class="conf-step-line"></div>
+                <div class="conf-step">
+                    <div class="conf-step-dot">📬</div>
+                    <span>Livré</span>
+                </div>
+            </div>
+            <div class="confirmation-actions">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a href="/compte/commandes" class="btn btn--primary">Voir mes commandes</a>
+                }
+                <a href="/" class="btn btn--ghost" style="color:var(--charcoal);border-color:var(--border)">Retour à l'accueil</a>
+                <a href="/livres" class="btn btn--outline">Continuer mes achats</a>
+            </div>
+        </div>
+    </div>
+</div>

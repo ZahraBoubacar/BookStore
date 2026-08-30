@@ -1,0 +1,135 @@
+@model ChallengeViewModel
+@{
+    ViewData["Title"] = "Défi Lecture";
+    int currentYear = DateTime.Now.Year;
+}
+
+<div class="challenge-page">
+    <div class="challenge-hero">
+        <div class="container">
+            <p class="section-label" style="color:var(--gold-light)">Défi Personnel</p>
+            <h1 class="challenge-hero-title">🏆 Défi Lecture @currentYear</h1>
+            <p class="challenge-hero-sub">Fixez-vous un objectif et suivez votre progression tout au long de l'année</p>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 48px 32px 72px;">
+        @if (!Model.HasChallenge)
+        {
+            <!-- Set Challenge -->
+            <div class="challenge-setup">
+                <div class="challenge-setup-card">
+                    <div class="challenge-setup-icon">🎯</div>
+                    <h2>Lancez votre défi !</h2>
+                    <p>Combien de livres voulez-vous lire en @currentYear ?</p>
+
+                    <form action="/bibliotheque/SetChallenge" method="post" class="challenge-form">
+                        @Html.AntiForgeryToken()
+                        <div class="challenge-presets">
+                            <button type="submit" name="goal" value="6"  class="preset-btn">6 livres<small>1 tous les 2 mois</small></button>
+                            <button type="submit" name="goal" value="12" class="preset-btn preset-btn--featured">12 livres<small>1 par mois ⭐</small></button>
+                            <button type="submit" name="goal" value="24" class="preset-btn">24 livres<small>2 par mois</small></button>
+                            <button type="submit" name="goal" value="52" class="preset-btn">52 livres<small>1 par semaine</small></button>
+                        </div>
+                        <div class="challenge-custom">
+                            <span>Ou personnalisé :</span>
+                            <input type="number" name="goal" min="1" max="365" value="12" class="form-control" style="width:100px" />
+                            <button type="submit" class="btn btn--primary">Valider</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        }
+        else
+        {
+            var ch = Model.Challenge!;
+            <!-- Active Challenge -->
+            <div class="challenge-active">
+                <!-- Main Progress -->
+                <div class="challenge-progress-card">
+                    <div class="challenge-progress-header">
+                        <div>
+                            <h2 class="challenge-goal-title">@ch.BooksRead <span>/ @ch.Goal livres</span></h2>
+                            <p class="challenge-badge-label">@ch.CurrentBadge</p>
+                        </div>
+                        <div class="challenge-percent">@ch.ProgressPercent%</div>
+                    </div>
+
+                    <div class="challenge-bar-wrap">
+                        <div class="challenge-bar">
+                            <div class="challenge-bar-fill" style="width:@ch.ProgressPercent%">
+                                <span class="challenge-bar-label">@ch.BooksRead livres</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (ch.IsCompleted)
+                    {
+                        <div class="challenge-completed-msg">
+                            🎉 Félicitations ! Vous avez atteint votre objectif de @ch.Goal livres !
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="challenge-remaining">
+                            Encore <strong>@ch.Remaining livre(s)</strong> pour atteindre votre objectif !
+                        </p>
+                    }
+
+                    <div class="challenge-actions">
+                        <a href="/livres" class="btn btn--primary">+ Trouver un livre</a>
+                        <form action="/bibliotheque/DeleteChallenge" method="post" style="display:inline"
+                              onsubmit="return confirm('Supprimer ce défi ?')">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn--outline">Changer d'objectif</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Badges -->
+                <div class="challenge-badges-section">
+                    <h2 class="section-title-sm">Vos badges</h2>
+                    <div class="badges-grid">
+                        @foreach (var badge in ch.Badges)
+                        {
+                            <div class="badge-card @(badge.Unlocked ? "badge-card--unlocked" : "badge-card--locked")">
+                                <div class="badge-icon">@badge.Icon</div>
+                                <div class="badge-name">@badge.Label</div>
+                                <div class="badge-condition">@badge.Condition</div>
+                                @if (badge.Unlocked)
+                                {
+                                    <div class="badge-unlocked-label">✓ Débloqué !</div>
+                                }
+                                else
+                                {
+                                    <div class="badge-locked-label">🔒 Verrouillé</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Books Read -->
+                @if (Model.FinishedBooks.Any())
+                {
+                    <div class="challenge-books-section">
+                        <h2 class="section-title-sm">Livres terminés cette année ✅</h2>
+                        <div class="challenge-books-grid">
+                            @foreach (var ub in Model.FinishedBooks.Take(8))
+                            {
+                                <div class="challenge-book-thumb" title="@ub.Book.Title">
+                                    <img src="@ub.Book.CoverImageUrl" alt="@ub.Book.Title"
+                                         onerror="this.src='/images/book-placeholder.svg'" />
+                                    @if (ub.PersonalRating > 0)
+                                    {
+                                        <div class="challenge-book-rating">@ub.PersonalRating★</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

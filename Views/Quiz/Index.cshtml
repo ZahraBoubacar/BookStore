@@ -1,0 +1,194 @@
+@{
+    ViewData["Title"] = "Quiz Lecture";
+}
+
+<div class="quiz-page">
+    <div class="quiz-hero">
+        <div class="container">
+            <p class="section-label" style="color:var(--gold-light)">Recommandation personnalisée</p>
+            <h1 class="quiz-hero-title">🎯 Quel livre est fait pour vous ?</h1>
+            <p class="quiz-hero-sub">Répondez à 4 questions — on trouve le livre parfait pour vous</p>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 56px 32px 72px;">
+        <div class="quiz-card">
+            <form action="/quiz/result" method="post" id="quizForm">
+                @Html.AntiForgeryToken()
+
+                <!-- Step 1 -->
+                <div class="quiz-step active" id="step1">
+                    <div class="quiz-step-num">1 / 4</div>
+                    <h2 class="quiz-question">Quel genre vous attire le plus ?</h2>
+                    <div class="quiz-options">
+                        <label class="quiz-option">
+                            <input type="radio" name="genre" value="roman" required />
+                            <span class="quiz-option-icon">📖</span>
+                            <span class="quiz-option-label">Roman & Fiction</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="genre" value="classique" />
+                            <span class="quiz-option-icon">🏛️</span>
+                            <span class="quiz-option-label">Littérature classique</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="genre" value="science" />
+                            <span class="quiz-option-icon">🔬</span>
+                            <span class="quiz-option-label">Sciences & Histoire</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="genre" value="développement" />
+                            <span class="quiz-option-icon">🌱</span>
+                            <span class="quiz-option-label">Développement personnel</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="genre" value="all" />
+                            <span class="quiz-option-icon">✨</span>
+                            <span class="quiz-option-label">Surprise-moi !</span>
+                        </label>
+                    </div>
+                    <button type="button" class="btn btn--primary quiz-next" onclick="nextStep(1)">Suivant →</button>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="quiz-step" id="step2">
+                    <div class="quiz-step-num">2 / 4</div>
+                    <h2 class="quiz-question">Qu'est-ce que vous cherchez dans un livre ?</h2>
+                    <div class="quiz-options">
+                        <label class="quiz-option">
+                            <input type="radio" name="mood" value="feel" required />
+                            <span class="quiz-option-icon">💗</span>
+                            <span class="quiz-option-label">Ressentir des émotions</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="mood" value="think" />
+                            <span class="quiz-option-icon">🧠</span>
+                            <span class="quiz-option-label">Réfléchir et apprendre</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="mood" value="escape" />
+                            <span class="quiz-option-icon">🌍</span>
+                            <span class="quiz-option-label">M'évader dans un autre monde</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="mood" value="grow" />
+                            <span class="quiz-option-icon">🚀</span>
+                            <span class="quiz-option-label">M'améliorer et m'inspirer</span>
+                        </label>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button type="button" class="btn btn--outline" onclick="prevStep(2)">← Précédent</button>
+                        <button type="button" class="btn btn--primary quiz-next" onclick="nextStep(2)">Suivant →</button>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="quiz-step" id="step3">
+                    <div class="quiz-step-num">3 / 4</div>
+                    <h2 class="quiz-question">Quelle longueur préférez-vous ?</h2>
+                    <div class="quiz-options">
+                        <label class="quiz-option">
+                            <input type="radio" name="length" value="short" required />
+                            <span class="quiz-option-icon">⚡</span>
+                            <span class="quiz-option-label">Court — moins de 200 pages</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="length" value="medium" />
+                            <span class="quiz-option-icon">📚</span>
+                            <span class="quiz-option-label">Moyen — 200 à 400 pages</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="length" value="long" />
+                            <span class="quiz-option-icon">📖</span>
+                            <span class="quiz-option-label">Long — plus de 400 pages</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="length" value="any" />
+                            <span class="quiz-option-icon">🎲</span>
+                            <span class="quiz-option-label">Peu importe</span>
+                        </label>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button type="button" class="btn btn--outline" onclick="prevStep(3)">← Précédent</button>
+                        <button type="button" class="btn btn--primary quiz-next" onclick="nextStep(3)">Suivant →</button>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="quiz-step" id="step4">
+                    <div class="quiz-step-num">4 / 4</div>
+                    <h2 class="quiz-question">Votre humeur aujourd'hui ?</h2>
+                    <div class="quiz-options">
+                        <label class="quiz-option">
+                            <input type="radio" name="theme" value="happy" required />
+                            <span class="quiz-option-icon">😊</span>
+                            <span class="quiz-option-label">Je suis en forme, prête pour tout</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="theme" value="sad" />
+                            <span class="quiz-option-icon">🌧️</span>
+                            <span class="quiz-option-label">J'ai besoin de réconfort</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="theme" value="curious" />
+                            <span class="quiz-option-icon">🔍</span>
+                            <span class="quiz-option-label">Je suis curieuse et aventureuse</span>
+                        </label>
+                        <label class="quiz-option">
+                            <input type="radio" name="theme" value="motivated" />
+                            <span class="quiz-option-icon">💪</span>
+                            <span class="quiz-option-label">Je veux être motivée et inspirée</span>
+                        </label>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button type="button" class="btn btn--outline" onclick="prevStep(4)">← Précédent</button>
+                        <button type="submit" class="btn btn--primary btn--lg">
+                            🎯 Voir mes recommandations
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Progress Bar -->
+            <div class="quiz-progress-bar">
+                <div class="quiz-progress-fill" id="quizProgress" style="width:25%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let currentStep = 1;
+
+document.querySelectorAll('.quiz-option input').forEach(input => {
+    input.addEventListener('change', function() {
+        document.querySelectorAll(`#step${currentStep} .quiz-option`).forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        this.closest('.quiz-option').classList.add('selected');
+    });
+});
+
+function nextStep(current) {
+    const step = document.getElementById('step' + current);
+    const selected = step.querySelector('input[type="radio"]:checked');
+    if (!selected) {
+        step.querySelector('.quiz-options').style.border = '2px solid var(--terracotta)';
+        setTimeout(() => step.querySelector('.quiz-options').style.border = '', 1000);
+        return;
+    }
+    document.getElementById('step' + current).classList.remove('active');
+    document.getElementById('step' + (current + 1)).classList.add('active');
+    currentStep = current + 1;
+    document.getElementById('quizProgress').style.width = (currentStep * 25) + '%';
+}
+
+function prevStep(current) {
+    document.getElementById('step' + current).classList.remove('active');
+    document.getElementById('step' + (current - 1)).classList.add('active');
+    currentStep = current - 1;
+    document.getElementById('quizProgress').style.width = (currentStep * 25) + '%';
+}
+</script>
+}

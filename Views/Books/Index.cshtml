@@ -1,0 +1,133 @@
+@model BookListViewModel
+@{
+    ViewData["Title"]       = Model.CategoryName;
+    ViewData["SearchQuery"] = Model.SearchQuery;
+    ViewBag.Categories      = Model.Categories;
+    var pg = Model.PaginatedBooks;
+
+    string PageUrl(int p)
+    {
+        var qs = new System.Collections.Specialized.NameValueCollection();
+        if (!string.IsNullOrWhiteSpace(Model.SearchQuery)) qs["q"]          = Model.SearchQuery;
+        if (Model.CategoryId.HasValue)                     qs["categoryId"] = Model.CategoryId.Value.ToString();
+        if (Model.AuthorId.HasValue)                       qs["authorId"]   = Model.AuthorId.Value.ToString();
+        if (Model.SortBy != "featured")                    qs["sortBy"]     = Model.SortBy;
+        qs["page"] = p.ToString();
+        var parts = new List<string>();
+        foreach (string key in qs) parts.Add($"{key}={Uri.EscapeDataString(qs[key]!)}");
+        return "/livres?" + string.Join("&", parts);
+    }
+}
+
+<div class="catalog-page">
+    <div class="catalog-header">
+        <div class="container">
+            @if (!string.IsNullOrWhiteSpace(Model.SearchQuery))
+            {
+                <div class="breadcrumb"><a href="/">Accueil</a><span>/</span><a href="/livres">Catalogue</a><span>/</span>Recherche</div>
+                <h1 class="page-title">Résultats pour <em>« @Model.SearchQuery »</em></h1>
+                <p class="results-count">@Model.TotalCount résultat(s)</p>
+            }
+            else
+            {
+                <div class="breadcrumb"><a href="/">Accueil</a><span>/</span><span>@Model.CategoryName</span></div>
+                <h1 class="page-title">@Model.CategoryName</h1>
+                <p class="results-count">@Model.TotalCount livre(s)</p>
+            }
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="catalog-layout">
+            <!-- Sidebar -->
+            <aside class="catalog-sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Genres</h3>
+                    <ul class="filter-list">
+                        <li><a href="/livres" class="filter-link @(Model.CategoryId == null && Model.AuthorId == null && string.IsNullOrEmpty(Model.SearchQuery) ? "active" : "")">Tous les livres</a></li>
+                        @foreach (var cat in Model.Categories)
+                        {
+                            <li><a href="/livres?categoryId=@cat.Id" class="filter-link @(Model.CategoryId == cat.Id ? "active" : "")"><span>@cat.Icon</span> @cat.Name</a></li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Auteurs</h3>
+                    <ul class="filter-list">
+                        @foreach (var author in Model.Authors)
+                        {
+                            <li><a href="/livres?authorId=@author.Id" class="filter-link @(Model.AuthorId == author.Id ? "active" : "")">@author.Name</a></li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">Trier par</h3>
+                    <ul class="filter-list">
+                        @{
+                            var sorts = new[] {
+                                ("featured",   "Recommandés"),
+                                ("rating",     "Mieux notés"),
+                                ("newest",     "Plus récents"),
+                                ("price_asc",  "Prix croissant"),
+                                ("price_desc", "Prix décroissant")
+                            };
+                        }
+                        @foreach (var (val, lbl) in sorts)
+                        {
+                            var href = Model.CategoryId.HasValue
+                                ? $"/livres?categoryId={Model.CategoryId}&sortBy={val}"
+                                : $"/livres?sortBy={val}";
+                            <li><a href="@href" class="filter-link @(Model.SortBy == val ? "active" : "")">@lbl</a></li>
+                        }
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Grid -->
+            <div class="catalog-main">
+                @if (pg.Items.Any())
+                {
+                    <div class="books-grid books-grid--catalog">
+                        @foreach (var book in pg.Items)
+                        {
+                            <partial name="_BookCard" model="book" />
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (pg.TotalPages > 1)
+                    {
+                        <div class="pagination">
+                            @if (pg.HasPreviousPage)
+                            {
+                                <a href="@PageUrl(pg.PageIndex - 1)" class="page-btn">← Précédent</a>
+                            }
+                            @for (int i = 1; i <= pg.TotalPages; i++)
+                            {
+                                <a href="@PageUrl(i)" class="page-btn @(i == pg.PageIndex ? "page-btn--active" : "")">@i</a>
+                            }
+                            @if (pg.HasNextPage)
+                            {
+                                <a href="@PageUrl(pg.PageIndex + 1)" class="page-btn">Suivant →</a>
+                            }
+                        </div>
+                    }
+                    <p class="pagination-info">
+                        Page @pg.PageIndex sur @pg.TotalPages — @pg.TotalCount livre(s) au total
+                    </p>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h2>Aucun livre trouvé</h2>
+                        <p>Essayez avec d'autres mots-clés ou parcourez nos catégories.</p>
+                        <a href="/livres" class="btn btn--primary">Voir tous les livres</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

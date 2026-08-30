@@ -1,0 +1,87 @@
+@model QuizViewModel
+@{
+    ViewData["Title"] = "Vos recommandations";
+}
+
+<div class="quiz-result-page">
+    <div class="quiz-hero">
+        <div class="container">
+            <p class="section-label" style="color:var(--gold-light)">Résultats personnalisés</p>
+            <h1 class="quiz-hero-title">🎉 Vos livres idéaux</h1>
+            <p class="quiz-hero-sub">Basé sur vos réponses — sélectionnés spécialement pour vous</p>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 56px 32px 72px;">
+        @if (Model.RecommendedBooks.Any())
+        {
+            <div class="quiz-results-grid">
+                @for (int i = 0; i < Model.RecommendedBooks.Count; i++)
+                {
+                    var book = Model.RecommendedBooks[i];
+                    var medals = new[] { "🥇", "🥈", "🥉" };
+                    <div class="quiz-result-card @(i == 0 ? "quiz-result-card--top" : "")">
+                        <div class="quiz-result-medal">@medals[i] @(i == 0 ? "Recommandation principale" : $"Suggestion {i + 1}")</div>
+                        <div class="quiz-result-body">
+                            <a href="/livres/details/@book.Slug">
+                                <img src="@book.CoverImageUrl" alt="@book.Title"
+                                     class="quiz-result-cover"
+                                     onerror="this.src='/images/book-placeholder.svg'" />
+                            </a>
+                            <div class="quiz-result-info">
+                                <p class="quiz-result-category">@book.Category.Icon @book.Category.Name</p>
+                                <h2 class="quiz-result-title">
+                                    <a href="/livres/details/@book.Slug">@book.Title</a>
+                                </h2>
+                                <p class="quiz-result-author">par @book.Author.Name</p>
+                                <div class="book-rating" style="margin: 8px 0">
+                                    @for (int s = 1; s <= 5; s++)
+                                    { <span class="star @(s <= Math.Round(book.Rating) ? "star--filled" : "")">★</span> }
+                                    <span class="rating-count">(@book.ReviewCount avis)</span>
+                                </div>
+                                <p class="quiz-result-desc">@book.ShortDescription</p>
+                                <div class="quiz-result-tags">
+                                    @foreach (var tag in book.Tags.Take(3))
+                                    { <span class="tag">@tag</span> }
+                                </div>
+                                <div class="quiz-result-footer">
+                                    <span class="detail-price" style="font-size:24px">@BookStore.Helpers.CurrencyHelper.FormatTND(book.Price)</span>
+                                    <div style="display:flex;gap:10px">
+                                        <a href="/livres/details/@book.Slug" class="btn btn--outline btn--sm">Voir le livre</a>
+                                        @if (User.Identity?.IsAuthenticated == true)
+                                        {
+                                            <form action="/panier/AddFromDetails" method="post">
+                                                <input type="hidden" name="bookId" value="@book.Id" />
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn--primary btn--sm">Ajouter au panier</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <a href="/compte/connexion" class="btn btn--primary btn--sm">🔒 Se connecter</a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="quiz-result-actions">
+                <a href="/quiz" class="btn btn--outline">🔄 Refaire le quiz</a>
+                <a href="/livres" class="btn btn--ghost" style="color:var(--charcoal);border-color:var(--border)">Explorer tout le catalogue</a>
+                <a href="/kitabai" class="btn btn--primary">🤖 Demander à Kitab AI</a>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h2>Aucun résultat trouvé</h2>
+                <p>Essayez avec d'autres réponses.</p>
+                <a href="/quiz" class="btn btn--primary">Refaire le quiz</a>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,78 @@
+@model OrderHistoryViewModel
+@{
+    ViewData["Title"] = "Mes commandes";
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+    var paginated = Model.PaginatedOrders;
+}
+
+<div class="account-page">
+    <div class="account-hero">
+        <div class="container">
+            <div class="account-hero-inner">
+                <div class="account-avatar-lg">@Model.User.Initials</div>
+                <div class="account-hero-info">
+                    <h1 class="account-name">Mes commandes</h1>
+                    <p class="account-email">@Model.User.FullName · @paginated.TotalCount commande(s)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="account-layout">
+            <aside class="account-sidebar">
+                <nav class="account-nav">
+                    <a href="/compte/tableau-de-bord" class="account-nav-link">🏠 Tableau de bord</a>
+                    <a href="/compte/commandes" class="account-nav-link active">📦 Mes commandes</a>
+                    <a href="/livres" class="account-nav-link">📖 Catalogue</a>
+                    <div class="account-nav-divider"></div>
+                    <form action="/compte/deconnexion" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="account-nav-link account-nav-link--danger">🚪 Se déconnecter</button>
+                    </form>
+                </nav>
+            </aside>
+
+            <div class="account-main">
+                @if (!paginated.Items.Any())
+                {
+                    <div class="empty-state" style="padding: 60px 0;">
+                        <div class="empty-icon">📭</div>
+                        <h2>Aucune commande</h2>
+                        <p>Vous n'avez pas encore passé de commande.</p>
+                        <a href="/livres" class="btn btn--primary">Explorer le catalogue</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="orders-list">
+                        @foreach (var order in paginated.Items)
+                        {
+                            <partial name="_OrderCard" model="order" />
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (paginated.TotalPages > 1)
+                    {
+                        <div class="pagination">
+                            @if (paginated.HasPreviousPage)
+                            {
+                                <a href="/compte/commandes?page=@(paginated.PageIndex - 1)" class="page-btn">← Précédent</a>
+                            }
+                            @for (int i = 1; i <= paginated.TotalPages; i++)
+                            {
+                                <a href="/compte/commandes?page=@i"
+                                   class="page-btn @(i == paginated.PageIndex ? "page-btn--active" : "")">@i</a>
+                            }
+                            @if (paginated.HasNextPage)
+                            {
+                                <a href="/compte/commandes?page=@(paginated.PageIndex + 1)" class="page-btn">Suivant →</a>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

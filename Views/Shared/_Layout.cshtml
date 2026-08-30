@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] != null ? ViewData["Title"] + " — " : "")Kitab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="announcement-bar">
+        <span>🇹🇳 Livraison gratuite dès 50 DT &nbsp;|&nbsp; Paiement sécurisé &nbsp;|&nbsp; Retours sous 30 jours</span>
+    </div>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="/" class="logo">
+                <span class="logo-icon">📚</span>
+                <div class="logo-text">
+                    <span class="logo-name">Kitab</span>
+                    <span class="logo-sub">مكتبة</span>
+                </div>
+            </a>
+
+            <form class="search-form" action="/livres" method="get">
+                <input type="text" name="q" class="search-input"
+                       placeholder="Titre, auteur, genre..."
+                       value="@ViewData["SearchQuery"]" autocomplete="off" />
+                <button type="submit" class="search-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="header-actions">
+                <nav class="main-nav">
+                    <a href="/livres" class="nav-link">Catalogue</a>
+                    <div class="nav-dropdown">
+                        <span class="nav-link nav-link--clickable">Genres ▾</span>
+                        <div class="dropdown-menu">
+                            @{
+                                var cats = ViewBag.Categories as List<BookStore.Models.Category> ?? new();
+                            }
+                            @foreach (var cat in cats)
+                            {
+                                <a href="/livres?categoryId=@cat.Id" class="dropdown-item">
+                                    <span>@cat.Icon</span> @cat.Name
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    <a href="/auteurs" class="nav-link">Auteurs</a>
+                    <a href="/kitabai" class="nav-link nav-link--ai">🤖 Kitab AI</a>
+                    <a href="/quiz"    class="nav-link">🎯 Quiz</a>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+                        bool isAdmin  = userEmail == "admin@kitab.tn" || userEmail == "marie@exemple.fr";
+                        if (isAdmin)
+                        {
+                            <a href="/admin" class="nav-link nav-link--admin">⚙️ Admin</a>
+                        }
+                    }
+                </nav>
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="nav-dropdown user-menu">
+                        <div class="user-avatar-btn">
+                            <div class="user-avatar">
+                                @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value?.Substring(0, 1).ToUpper()
+                            </div>
+                            <span class="nav-link">
+                                @User.FindFirst(System.Security.Claims.ClaimTypes.GivenName)?.Value ▾
+                            </span>
+                        </div>
+                        <div class="dropdown-menu dropdown-menu--right">
+                            <a href="/compte/tableau-de-bord" class="dropdown-item">🏠 Mon espace</a>
+                            <a href="/bibliotheque"           class="dropdown-item">📚 Ma bibliothèque</a>
+                            <a href="/bibliotheque/challenge" class="dropdown-item">🏆 Mon défi lecture</a>
+                            <a href="/compte/commandes"       class="dropdown-item">📦 Mes commandes</a>
+                            <div class="dropdown-divider"></div>
+                            <form action="/compte/deconnexion" method="post" style="margin:0">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item dropdown-item--btn">🚪 Se déconnecter</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a href="/compte/connexion"  class="nav-link">Connexion</a>
+                    <a href="/compte/inscription" class="btn btn--outline btn--sm">S'inscrire</a>
+                }
+
+                <a href="/panier" class="cart-btn" id="cartBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                    <span class="cart-count" id="cartCount" style="display:none">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast toast--success" id="toast">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            @TempData["Success"]
+        </div>
+    }
+
+    <main>@RenderBody()</main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-logo">📚 Kitab — كتاب</div>
+                <p>Votre plateforme culturelle tunisienne. Achetez, lisez, suivez vos lectures et découvrez de nouveaux livres avec l'IA.</p>
+                <div class="footer-contact">
+                    <span>📍 Tunis, Tunisie</span>
+                    <span>📧 contact@kitab.tn</span>
+                    <span>📞 +216 71 XXX XXX</span>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Explorer</h4>
+                    <a href="/livres">Catalogue</a>
+                    <a href="/auteurs">Auteurs</a>
+                    <a href="/kitabai">🤖 Kitab AI</a>
+                    <a href="/quiz">🎯 Quiz lecture</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Mon espace</h4>
+                    <a href="/bibliotheque">Ma bibliothèque</a>
+                    <a href="/bibliotheque/challenge">Défi lecture</a>
+                    <a href="/compte/commandes">Mes commandes</a>
+                    <a href="/compte/tableau-de-bord">Dashboard</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Compte</h4>
+                    <a href="/compte/connexion">Connexion</a>
+                    <a href="/compte/inscription">Inscription</a>
+                    <a href="/admin">Administration</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 Kitab — Tous droits réservés &nbsp;|&nbsp; Tunis, Tunisie 🇹🇳</p>
+        </div>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

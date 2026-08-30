@@ -1,0 +1,228 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Accueil";
+    ViewBag.Categories = Model.Categories;
+}
+
+<!-- Guest Banner (non-authenticated users only) -->
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <div class="guest-banner">
+        <div class="container">
+            <div class="guest-banner-inner">
+                <div class="guest-banner-text">
+                    <span class="guest-banner-icon">👋</span>
+                    <span>Bienvenue chez <strong>Kitab</strong> ! Connectez-vous pour ajouter des livres à votre panier et suivre vos commandes.</span>
+                </div>
+                <div class="guest-banner-actions">
+                    <a href="/compte/connexion" class="btn btn--ghost">Se connecter</a>
+                    <a href="/compte/inscription" class="btn btn--primary" style="padding:8px 20px;font-size:13px">Créer un compte</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+        <div class="hero-badge">✨ Nouvelle collection printemps 2025</div>
+        <h1 class="hero-title">
+            Votre librairie<br>
+            <em>tunisienne en ligne</em>
+        </h1>
+        <p class="hero-subtitle">
+            Découvrez des milliers d'œuvres soigneusement sélectionnées —
+            des classiques intemporels aux nouvelles voix de la littérature mondiale, livrées partout en Tunisie.
+        </p>
+        <div class="hero-actions">
+            <a href="/livres" class="btn btn--primary">Explorer le catalogue</a>
+            <a href="/livres?sortBy=newest" class="btn btn--ghost">Voir les nouveautés</a>
+        </div>
+        <div class="hero-stats">
+            <div class="stat"><strong>2 400+</strong><span>Titres disponibles</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat"><strong>150+</strong><span>Auteurs</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat"><strong>⭐ 4.8</strong><span>Note moyenne</span></div>
+            <div class="stat-divider"></div>
+            <div class="stat"><strong>🇹🇳</strong><span>Livraison Tunisie</span></div>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="book-stack">
+            @foreach (var book in Model.FeaturedBooks.Take(3))
+            {
+                <div class="stack-book">
+                    <img src="@book.CoverImageUrl" alt="@book.Title" onerror="this.src='/images/book-placeholder.svg'" />
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Categories Strip -->
+<section class="categories-strip">
+    <div class="container">
+        <div class="categories-grid">
+            @foreach (var cat in Model.Categories)
+            {
+                <a href="/livres?categoryId=@cat.Id" class="category-chip" style="--cat-color: @cat.Color">
+                    <span class="cat-icon">@cat.Icon</span>
+                    <span>@cat.Name</span>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Featured Books -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <p class="section-label">Sélection éditoriale</p>
+                <h2 class="section-title">Nos coups de cœur</h2>
+            </div>
+            <a href="/livres?sortBy=featured" class="see-all">Voir tout →</a>
+        </div>
+        <div class="books-grid">
+            @foreach (var book in Model.FeaturedBooks)
+            {
+                <partial name="_BookCard" model="book" />
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Auth CTA Banner (guests only) -->
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <section class="auth-cta-banner">
+        <div class="container">
+            <div class="auth-cta-inner">
+                <div class="auth-cta-text">
+                    <h2>📚 Rejoignez la communauté Kitab</h2>
+                    <p>Créez votre compte gratuitement et accédez à toutes les fonctionnalités : panier, commandes, historique et bien plus.</p>
+                </div>
+                <div class="auth-cta-actions">
+                    <a href="/compte/inscription" class="btn btn--white">Créer mon compte gratuitement</a>
+                    <a href="/compte/connexion" class="btn btn--ghost">J'ai déjà un compte</a>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Promo Banner -->
+<section class="promo-banner">
+    <div class="container">
+        <div class="promo-content">
+            <div class="promo-text">
+                <h2>📦 Livraison gratuite dès 50 DT</h2>
+                <p>Commandez avant 14h pour une expédition le jour même dans toute la Tunisie.</p>
+            </div>
+            <a href="/livres" class="btn btn--white">Découvrir nos offres</a>
+        </div>
+    </div>
+</section>
+
+<!-- Bestsellers -->
+<section class="section section--alt">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <p class="section-label">Les plus populaires</p>
+                <h2 class="section-title">Meilleures ventes</h2>
+            </div>
+            <a href="/livres?sortBy=rating" class="see-all">Voir tout →</a>
+        </div>
+        <div class="books-grid books-grid--horizontal">
+            @foreach (var book in Model.BestsellerBooks)
+            {
+                <div class="book-card book-card--horizontal">
+                    <a href="/livres/details/@book.Slug" class="book-card-img-link">
+                        <img src="@book.CoverImageUrl" alt="@book.Title" class="book-cover" onerror="this.src='/images/book-placeholder.svg'" />
+                    </a>
+                    <div class="book-card-body">
+                        <span class="badge badge--bestseller">Bestseller</span>
+                        <h3 class="book-title"><a href="/livres/details/@book.Slug">@book.Title</a></h3>
+                        <p class="book-author">@book.Author.Name</p>
+                        <div class="book-rating">
+                            @for (int i = 1; i <= 5; i++)
+                            { <span class="star @(i <= Math.Round(book.Rating) ? "star--filled" : "")">★</span> }
+                            <span class="rating-count">(@book.ReviewCount)</span>
+                        </div>
+                        <p class="book-excerpt">@book.ShortDescription</p>
+                        <div class="book-footer">
+                            <span class="book-price">@CurrencyHelper.FormatTND(book.Price)</span>
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <form action="/panier/AddFromDetails" method="post">
+                                    <input type="hidden" name="bookId" value="@book.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn-add-cart btn-add-cart--sm">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                                        Ajouter
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a href="/compte/connexion" class="btn-add-cart btn-add-cart--sm btn-add-cart--lock">🔒 Connexion</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- New Arrivals -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <div>
+                <p class="section-label">Tout juste arrivés</p>
+                <h2 class="section-title">Nouveautés</h2>
+            </div>
+            <a href="/livres?sortBy=newest" class="see-all">Voir tout →</a>
+        </div>
+        <div class="books-grid">
+            @foreach (var book in Model.NewArrivals)
+            {
+                <partial name="_BookCard" model="book" />
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Trust Strip -->
+<section class="trust-strip">
+    <div class="container">
+        <div class="trust-grid">
+            <div class="trust-item">
+                <div class="trust-icon">🚚</div>
+                <h4>Livraison rapide</h4>
+                <p>Partout en Tunisie en 2-4 jours</p>
+            </div>
+            <div class="trust-item">
+                <div class="trust-icon">🔒</div>
+                <h4>Paiement sécurisé</h4>
+                <p>Transactions protégées SSL</p>
+            </div>
+            <div class="trust-item">
+                <div class="trust-icon">↩️</div>
+                <h4>Retours gratuits</h4>
+                <p>Satisfait ou remboursé sous 30 jours</p>
+            </div>
+            <div class="trust-item">
+                <div class="trust-icon">💬</div>
+                <h4>Service client</h4>
+                <p>Disponible 7j/7 par chat et email</p>
+            </div>
+        </div>
+    </div>
+</section>

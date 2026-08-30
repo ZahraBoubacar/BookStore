@@ -1,0 +1,236 @@
+@model LibraryViewModel
+@{
+    ViewData["Title"] = "Ma Bibliothèque";
+}
+
+<div class="library-page">
+    <div class="account-hero">
+        <div class="container">
+            <div class="account-hero-inner">
+                <div class="library-hero-icon">📚</div>
+                <div>
+                    <h1 class="account-name">Ma Bibliothèque</h1>
+                    <p class="account-email">@Model.Stats.TotalBooks livre(s) · @Model.Stats.BooksRead terminé(s) · @Model.Stats.TotalPages pages lues</p>
+                </div>
+                @if (Model.Challenge != null)
+                {
+                    <div class="library-challenge-mini">
+                        <span class="challenge-mini-label">Défi @Model.Challenge.Year</span>
+                        <div class="challenge-mini-bar">
+                            <div class="challenge-mini-fill" style="width:@Model.Challenge.ProgressPercent%"></div>
+                        </div>
+                        <span class="challenge-mini-count">@Model.Challenge.BooksRead / @Model.Challenge.Goal</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 40px 32px 72px;">
+        <!-- Stats -->
+        <div class="library-stats">
+            <div class="lib-stat">
+                <span class="lib-stat-icon">📖</span>
+                <strong>@Model.Stats.BooksToRead</strong>
+                <span>À lire</span>
+            </div>
+            <div class="lib-stat">
+                <span class="lib-stat-icon">🔄</span>
+                <strong>@Model.Stats.BooksReading</strong>
+                <span>En cours</span>
+            </div>
+            <div class="lib-stat">
+                <span class="lib-stat-icon">✅</span>
+                <strong>@Model.Stats.BooksRead</strong>
+                <span>Terminés</span>
+            </div>
+            <div class="lib-stat">
+                <span class="lib-stat-icon">📄</span>
+                <strong>@Model.Stats.TotalPages</strong>
+                <span>Pages lues</span>
+            </div>
+            <div class="lib-stat">
+                <span class="lib-stat-icon">⭐</span>
+                <strong>@(Model.Stats.AverageRating > 0 ? Model.Stats.AverageRating.ToString("F1") : "—")</strong>
+                <span>Note moy.</span>
+            </div>
+            <div class="lib-stat">
+                <span class="lib-stat-icon">❤️</span>
+                <strong style="font-size:13px">@Model.Stats.FavoriteGenre</strong>
+                <span>Genre favori</span>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="library-tabs">
+            <a href="/bibliotheque?tab=all"      class="lib-tab @(Model.ActiveTab == "all"      ? "active" : "")">Tous (@Model.AllBooks.Count)</a>
+            <a href="/bibliotheque?tab=reading"  class="lib-tab @(Model.ActiveTab == "reading"  ? "active" : "")">🔄 En cours (@Model.ReadingBooks.Count)</a>
+            <a href="/bibliotheque?tab=toread"   class="lib-tab @(Model.ActiveTab == "toread"   ? "active" : "")">📖 À lire (@Model.ToReadBooks.Count)</a>
+            <a href="/bibliotheque?tab=finished" class="lib-tab @(Model.ActiveTab == "finished" ? "active" : "")">✅ Terminés (@Model.FinishedBooks.Count)</a>
+        </div>
+
+        <!-- Books List -->
+        @{
+            var displayBooks = Model.ActiveTab switch
+            {
+                "reading"  => Model.ReadingBooks,
+                "toread"   => Model.ToReadBooks,
+                "finished" => Model.FinishedBooks,
+                _          => Model.AllBooks
+            };
+        }
+
+        @if (!displayBooks.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h2>Aucun livre ici</h2>
+                <p>Explorez le catalogue et ajoutez des livres à votre bibliothèque.</p>
+                <a href="/livres" class="btn btn--primary">Explorer le catalogue</a>
+            </div>
+        }
+        else
+        {
+            <div class="library-list">
+                @foreach (var ub in displayBooks)
+                {
+                    <div class="library-item">
+                        <a href="/livres/details/@ub.Book.Slug">
+                            <img src="@ub.Book.CoverImageUrl" alt="@ub.Book.Title"
+                                 class="library-item-cover"
+                                 onerror="this.src='/images/book-placeholder.svg'" />
+                        </a>
+                        <div class="library-item-info">
+                            <span class="library-item-category">@ub.Book.Category.Name</span>
+                            <h3 class="library-item-title">
+                                <a href="/livres/details/@ub.Book.Slug">@ub.Book.Title</a>
+                            </h3>
+                            <p class="library-item-author">@ub.Book.Author.Name</p>
+                            <p class="library-item-pages">@ub.Book.Pages pages</p>
+
+                            <!-- Status Badge -->
+                            <span class="lib-status-badge @ub.StatusCss">
+                                @ub.StatusIcon @ub.StatusLabel
+                            </span>
+
+                            <!-- Dates -->
+                            @if (ub.StartedAt.HasValue)
+                            {
+                                <p class="library-item-date">
+                                    Commencé le @ub.StartedAt.Value.ToString("dd MMM yyyy")
+                                    @if (ub.FinishedAt.HasValue)
+                                    {
+                                        <span>· Terminé le @ub.FinishedAt.Value.ToString("dd MMM yyyy")</span>
+                                    }
+                                </p>
+                            }
+
+                            <!-- Personal Note -->
+                            @if (!string.IsNullOrEmpty(ub.PersonalNote))
+                            {
+                                <p class="library-item-note">💬 @ub.PersonalNote</p>
+                            }
+
+                            <!-- Personal Rating -->
+                            @if (ub.PersonalRating > 0)
+                            {
+                                <div class="library-item-rating">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <span class="star @(i <= ub.PersonalRating ? "star--filled" : "")">★</span>
+                                    }
+                                    <span style="font-size:12px;color:var(--charcoal-light)">Ma note</span>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="library-item-actions">
+                            <!-- Change Status -->
+                            <form action="/bibliotheque/UpdateStatus" method="post">
+                                <input type="hidden" name="bookId" value="@ub.BookId" />
+                                @Html.AntiForgeryToken()
+                                <select name="status" class="lib-status-select" onchange="this.form.submit()">
+                                    @if (ub.Status == ReadingStatus.ToRead)
+                                    {
+                                        <option value="ToRead" selected>📖 À lire</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="ToRead">📖 À lire</option>
+                                    }
+                                    @if (ub.Status == ReadingStatus.Reading)
+                                    {
+                                        <option value="Reading" selected>🔄 En cours</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Reading">🔄 En cours</option>
+                                    }
+                                    @if (ub.Status == ReadingStatus.Finished)
+                                    {
+                                        <option value="Finished" selected>✅ Terminé</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Finished">✅ Terminé</option>
+                                    }
+                                </select>
+                            </form>
+
+                            <!-- Add/Edit Note -->
+                            <button class="lib-note-btn" onclick="toggleNote(@ub.BookId)">
+                                ✏️ @(string.IsNullOrEmpty(ub.PersonalNote) ? "Ajouter une note" : "Modifier la note")
+                            </button>
+
+                            <!-- Remove -->
+                            <form action="/bibliotheque/Remove" method="post"
+                                  onsubmit="return confirm('Retirer ce livre ?')">
+                                <input type="hidden" name="bookId" value="@ub.BookId" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="lib-remove-btn">🗑 Retirer</button>
+                            </form>
+
+                            <!-- Note Form (hidden) -->
+                            <div class="lib-note-form" id="note-form-@ub.BookId" style="display:none">
+                                <form action="/bibliotheque/UpdateNote" method="post">
+                                    <input type="hidden" name="bookId" value="@ub.BookId" />
+                                    @Html.AntiForgeryToken()
+                                    <textarea name="note" class="lib-note-input" placeholder="Votre note personnelle...">@ub.PersonalNote</textarea>
+                                    <div class="lib-rating-input">
+                                        <span>Votre note :</span>
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <label>
+                                                <input type="radio" name="rating" value="@i" @(ub.PersonalRating == i ? "checked" : "") />
+                                                ★
+                                            </label>
+                                        }
+                                    </div>
+                                    <button type="submit" class="btn btn--primary" style="font-size:13px;padding:8px 16px">Sauvegarder</button>
+                                    <button type="button" onclick="toggleNote(@ub.BookId)"
+                                            class="btn btn--outline" style="font-size:13px;padding:8px 16px">Annuler</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Add books CTA -->
+        <div class="library-cta">
+            <a href="/livres" class="btn btn--outline">+ Ajouter des livres</a>
+            <a href="/bibliotheque/challenge" class="btn btn--primary">🏆 Mon défi lecture</a>
+            <a href="/kitabai" class="btn btn--outline">🤖 Demander à Kitab AI</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function toggleNote(bookId) {
+    const form = document.getElementById('note-form-' + bookId);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+}

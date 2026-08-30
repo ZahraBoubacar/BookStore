@@ -1,0 +1,137 @@
+@model BookStore.Models.Book
+@{
+    ViewData["Title"] = "Ajouter un livre";
+    var authors = ViewBag.Authors as List<BookStore.Models.Author> ?? new();
+    var cats    = ViewBag.Categories as List<BookStore.Models.Category> ?? new();
+    ViewBag.Categories2 = cats;
+}
+
+<div class="admin-form-page">
+    <div class="container">
+        <nav class="breadcrumb"><a href="/admin">Admin</a><span>/</span><span>Ajouter un livre</span></nav>
+        <h1 class="page-title">Ajouter un livre</h1>
+
+        <form asp-action="CreateBook" method="post" class="admin-form">
+            @Html.AntiForgeryToken()
+            <div class="admin-form-grid">
+                <div class="admin-form-main">
+                    <div class="admin-form-section">
+                        <h2 class="admin-form-section-title">Informations générales</h2>
+                        <div class="form-group">
+                            <label>Titre *</label>
+                            <input asp-for="Title" class="form-control" placeholder="Titre du livre" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Description courte *</label>
+                            <input asp-for="ShortDescription" class="form-control" placeholder="Une phrase de présentation" />
+                        </div>
+                        <div class="form-group">
+                            <label>Description complète *</label>
+                            <textarea asp-for="Description" class="form-control form-textarea" placeholder="Description détaillée..." rows="5"></textarea>
+                        </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label>Auteur *</label>
+                                <select asp-for="AuthorId" class="form-control form-select" required>
+                                    <option value="">-- Choisir --</option>
+                                    @foreach (var a in authors) { <option value="@a.Id">@a.Name</option> }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Catégorie *</label>
+                                <select asp-for="CategoryId" class="form-control form-select" required>
+                                    <option value="">-- Choisir --</option>
+                                    @foreach (var c in cats) { <option value="@c.Id">@c.Icon @c.Name</option> }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-section">
+                        <h2 class="admin-form-section-title">Prix & Disponibilité</h2>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label>Prix (DT) *</label>
+                                <input asp-for="Price" class="form-control" type="number" step="0.001" min="0" placeholder="0.000" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Prix barré (DT, optionnel)</label>
+                                <input asp-for="OriginalPrice" class="form-control" type="number" step="0.001" min="0" placeholder="0.000" />
+                            </div>
+                        </div>
+                        <div class="admin-checkboxes">
+                            <label class="admin-checkbox">
+                                <input asp-for="IsFeatured" type="checkbox" /> Mis en avant
+                            </label>
+                            <label class="admin-checkbox">
+                                <input asp-for="IsBestseller" type="checkbox" /> Bestseller
+                            </label>
+                            <label class="admin-checkbox">
+                                <input asp-for="IsNew" type="checkbox" /> Nouveau
+                            </label>
+                            <label class="admin-checkbox">
+                                <input asp-for="IsAvailable" type="checkbox" checked /> Disponible
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-section">
+                        <h2 class="admin-form-section-title">Détails techniques</h2>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label>ISBN</label>
+                                <input asp-for="ISBN" class="form-control" placeholder="978-X-XXXX-XXXX-X" />
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre de pages</label>
+                                <input asp-for="Pages" class="form-control" type="number" min="1" placeholder="300" />
+                            </div>
+                            <div class="form-group">
+                                <label>Éditeur</label>
+                                <input asp-for="Publisher" class="form-control" placeholder="Nom de l'éditeur" />
+                            </div>
+                            <div class="form-group">
+                                <label>Date de publication</label>
+                                <input asp-for="PublishedDate" class="form-control" type="date" />
+                            </div>
+                            <div class="form-group">
+                                <label>Note (0-5)</label>
+                                <input asp-for="Rating" class="form-control" type="number" step="0.1" min="0" max="5" placeholder="4.5" />
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre d'avis</label>
+                                <input asp-for="ReviewCount" class="form-control" type="number" min="0" placeholder="0" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>URL de la couverture</label>
+                            <input asp-for="CoverImageUrl" class="form-control" placeholder="https://..." id="coverUrl" oninput="previewCover(this.value)" />
+                        </div>
+                        <div class="cover-preview" id="coverPreview" style="display:none">
+                            <img id="coverImg" src="" alt="Aperçu" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-form-sidebar">
+                    <div class="admin-form-section">
+                        <h2 class="admin-form-section-title">Actions</h2>
+                        <button type="submit" class="btn btn--primary btn--full">✓ Créer le livre</button>
+                        <a href="/admin" class="btn btn--outline btn--full" style="margin-top:10px">Annuler</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function previewCover(url) {
+    const preview = document.getElementById('coverPreview');
+    const img = document.getElementById('coverImg');
+    if (url) { img.src = url; preview.style.display = 'block'; }
+    else { preview.style.display = 'none'; }
+}
+</script>
+}

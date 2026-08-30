@@ -1,0 +1,46 @@
+@model List<BookStore.Models.Author>
+@{
+    ViewData["Title"] = "Nos Auteurs";
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+}
+
+<div class="authors-page">
+    <div class="catalog-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Accueil</a> <span>/</span> <span>Nos auteurs</span>
+            </div>
+            <h1 class="page-title" style="color:var(--cream)">Nos auteurs</h1>
+            <p class="results-count" style="color:rgba(250,247,242,0.55)">@Model.Count plumes d'exception</p>
+        </div>
+    </div>
+
+    <div class="container" style="padding-top: 56px; padding-bottom: 72px;">
+        <div class="authors-grid">
+            @foreach (var author in Model)
+            {
+                <a href="/auteurs/details/@author.Id" class="author-card-link">
+                    <div class="author-list-card">
+                        <div class="author-list-photo">
+                            <img src="@author.PhotoUrl" alt="@author.Name"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+                            <div class="author-list-fallback">@author.Name[0]</div>
+                        </div>
+                        <div class="author-list-info">
+                            <h2 class="author-list-name">@author.Name</h2>
+                            <p class="author-list-meta">@author.Nationality · né en @author.BirthYear</p>
+                            <p class="author-list-bio">@(author.Bio.Length > 120 ? author.Bio.Substring(0, 120) + "…" : author.Bio)</p>
+                            @if (author.Awards.Any())
+                            {
+                                <div class="author-list-awards">
+                                    <span class="award-badge">🏆 @author.Awards.First()</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="author-list-arrow">→</div>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+</div>

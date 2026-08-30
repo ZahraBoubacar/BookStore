@@ -1,0 +1,213 @@
+@{
+    ViewData["Title"] = "Kitab AI";
+}
+
+<div class="ai-page">
+    <div class="ai-hero">
+        <div class="container">
+            <div class="ai-hero-inner">
+                <div class="ai-avatar-hero">🤖</div>
+                <div>
+                    <p class="ai-hero-label">Intelligence Artificielle</p>
+                    <h1 class="ai-hero-title">Kitab <span>AI</span></h1>
+                    <p class="ai-hero-sub">Votre conseiller libraire personnel — disponible 24h/24</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="ai-layout">
+            <!-- Suggestions -->
+            <aside class="ai-sidebar">
+                <div class="ai-suggestions-card">
+                    <h3 class="ai-suggestions-title">💡 Questions suggérées</h3>
+                    <div class="ai-suggestions">
+                        <button class="ai-suggestion" onclick="askSuggestion(this)">
+                            Quel livre lire ce soir ?
+                        </button>
+                        <button class="ai-suggestion" onclick="askSuggestion(this)">
+                            Je suis stressée par ma soutenance, aide-moi 😅
+                        </button>
+                        <button class="ai-suggestion" onclick="askSuggestion(this)">
+                            Résume-moi Sapiens en 3 lignes
+                        </button>
+                        <button class="ai-suggestion" onclick="askSuggestion(this)">
+                            J'ai aimé L'Étranger, que lire après ?
+                        </button>
+                        <button class="ai-suggestion" onclick="askSuggestion(this)">
+                            Quel est le meilleur livre de Murakami ?
+                        </button>
+                        <button class="ai-suggestion" onclick="askSuggestion(this)">
+                            Je veux un livre court et inspirant
+                        </button>
+                        <button class="ai-suggestion" onclick="askSuggestion(this)">
+                            Recommande-moi un roman tunisien ou arabe
+                        </button>
+                        <button class="ai-suggestion" onclick="askSuggestion(this)">
+                            Quels livres sont en promotion ?
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ai-info-card">
+                    <h3>🎯 Ce que je peux faire</h3>
+                    <ul>
+                        <li>📚 Recommander des livres selon vos goûts</li>
+                        <li>📝 Résumer un livre en quelques lignes</li>
+                        <li>🔍 Comparer deux auteurs</li>
+                        <li>💭 Conseiller selon votre humeur</li>
+                        <li>💰 Trouver les meilleures offres</li>
+                        <li>🌍 Parler en français ou en arabe</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Chat -->
+            <div class="ai-chat-container">
+                <div class="ai-chat-box" id="chatBox">
+                    <!-- Welcome message -->
+                    <div class="ai-message ai-message--bot">
+                        <div class="ai-message-avatar">🤖</div>
+                        <div class="ai-message-content">
+                            <p>Bonjour ! Je suis <strong>Kitab AI</strong>, votre conseiller libraire personnel. 📚</p>
+                            <p>Je connais tout notre catalogue et je suis là pour vous aider à trouver le livre parfait. Que puis-je faire pour vous ?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing indicator -->
+                <div class="ai-typing" id="typingIndicator" style="display:none">
+                    <div class="ai-message-avatar">🤖</div>
+                    <div class="ai-typing-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <!-- Input -->
+                <div class="ai-input-area">
+                    <div class="ai-input-row">
+                        <textarea
+                            id="userInput"
+                            class="ai-input"
+                            placeholder="Posez votre question à Kitab AI..."
+                            rows="1"
+                            onkeydown="handleKey(event)"
+                            oninput="autoResize(this)"></textarea>
+                        <button class="ai-send-btn" id="sendBtn" onclick="sendMessage()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="22" y1="2" x2="11" y2="13"/>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="ai-disclaimer">
+                        Kitab AI peut faire des erreurs. Les prix sont indicatifs — vérifiez sur les fiches livres.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let conversationHistory = [];
+
+    function handleKey(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function autoResize(el) {
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function askSuggestion(btn) {
+        document.getElementById('userInput').value = btn.textContent.trim();
+        sendMessage();
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Add user message to UI
+        addMessage('user', text);
+        input.value = '';
+        input.style.height = 'auto';
+
+        // Add to history
+        conversationHistory.push({ role: 'user', content: text });
+
+        // Show typing
+        document.getElementById('typingIndicator').style.display = 'flex';
+        document.getElementById('sendBtn').disabled = true;
+        scrollToBottom();
+
+        try {
+            const res = await fetch('/kitabai/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: conversationHistory })
+            });
+
+            const data = await res.json();
+
+            document.getElementById('typingIndicator').style.display = 'none';
+            document.getElementById('sendBtn').disabled = false;
+
+            if (data.error) {
+                addMessage('bot', '❌ Désolé, une erreur est survenue. Réessayez dans quelques instants.');
+            } else {
+                addMessage('bot', data.reply);
+                conversationHistory.push({ role: 'assistant', content: data.reply });
+            }
+        } catch (err) {
+            document.getElementById('typingIndicator').style.display = 'none';
+            document.getElementById('sendBtn').disabled = false;
+            addMessage('bot', '❌ Connexion impossible. Vérifiez votre connexion internet.');
+        }
+
+        scrollToBottom();
+    }
+
+    function addMessage(role, text) {
+        const chatBox = document.getElementById('chatBox');
+        const div = document.createElement('div');
+        div.className = `ai-message ai-message--${role === 'user' ? 'user' : 'bot'}`;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'ai-message-avatar';
+        avatar.textContent = role === 'user' ? '👤' : '🤖';
+
+        const content = document.createElement('div');
+        content.className = 'ai-message-content';
+
+        // Format text — bold, line breaks
+        const formatted = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+        content.innerHTML = formatted;
+
+        if (role === 'user') {
+            div.appendChild(content);
+            div.appendChild(avatar);
+        } else {
+            div.appendChild(avatar);
+            div.appendChild(content);
+        }
+
+        chatBox.appendChild(div);
+    }
+
+    function scrollToBottom() {
+        const chatBox = document.getElementById('chatBox');
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+</script>
+}

@@ -1,0 +1,47 @@
+@model BookStore.Models.Order
+@{
+    var statusLabels = new Dictionary<BookStore.Models.OrderStatus, (string label, string css, string icon)>
+    {
+        [BookStore.Models.OrderStatus.Confirmed]  = ("Confirmée",      "status--confirmed",   "✅"),
+        [BookStore.Models.OrderStatus.Processing] = ("En préparation", "status--processing",  "⚙️"),
+        [BookStore.Models.OrderStatus.Shipped]    = ("Expédiée",       "status--shipped",     "🚚"),
+        [BookStore.Models.OrderStatus.Delivered]  = ("Livrée",         "status--delivered",   "📬"),
+        [BookStore.Models.OrderStatus.Cancelled]  = ("Annulée",        "status--cancelled",   "❌"),
+    };
+    var (label, css, icon) = statusLabels[Model.Status];
+}
+
+<div class="order-card">
+    <div class="order-card-header">
+        <div class="order-card-meta">
+            <span class="order-number">Commande @Model.Id</span>
+            <span class="order-date">@Model.OrderDate.ToString("dd MMM yyyy")</span>
+        </div>
+        <span class="order-status @css">@icon @label</span>
+    </div>
+
+    <div class="order-card-books">
+        @foreach (var item in Model.Items.Take(4))
+        {
+            <div class="order-book-thumb" title="@item.BookTitle">
+                <img src="@item.CoverImageUrl" alt="@item.BookTitle" onerror="this.src='/images/book-placeholder.svg'" />
+                @if (item.Quantity > 1)
+                {
+                    <span class="thumb-qty">×@item.Quantity</span>
+                }
+            </div>
+        }
+        @if (Model.Items.Count > 4)
+        {
+            <div class="order-book-more">+@(Model.Items.Count - 4)</div>
+        }
+    </div>
+
+    <div class="order-card-footer">
+        <div class="order-card-details">
+            <span>@Model.TotalItems article(s)</span>
+            <span class="order-total">@BookStore.Helpers.CurrencyHelper.FormatTND(Model.Total)</span>
+        </div>
+        <a href="/compte/commande/@Model.Id" class="btn btn--outline btn--sm">Voir le détail →</a>
+    </div>
+</div>

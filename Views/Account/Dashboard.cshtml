@@ -1,0 +1,96 @@
+@model AccountViewModel
+@{
+    ViewData["Title"] = "Mon espace";
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+}
+
+<div class="account-page">
+    <!-- Profile Header -->
+    <div class="account-hero">
+        <div class="container">
+            <div class="account-hero-inner">
+                <div class="account-avatar-lg">@Model.User.Initials</div>
+                <div class="account-hero-info">
+                    <h1 class="account-name">@Model.User.FullName</h1>
+                    <p class="account-email">@Model.User.Email</p>
+                    <p class="account-since">Membre depuis @Model.User.CreatedAt.ToString("MMMM yyyy")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="account-layout">
+            <!-- Sidebar -->
+            <aside class="account-sidebar">
+                <nav class="account-nav">
+                    <a href="/compte/tableau-de-bord" class="account-nav-link active">🏠 Tableau de bord</a>
+                    <a href="/compte/commandes" class="account-nav-link">📦 Mes commandes</a>
+                    <a href="/livres" class="account-nav-link">📖 Catalogue</a>
+                    <div class="account-nav-divider"></div>
+                    <form action="/compte/deconnexion" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="account-nav-link account-nav-link--danger">🚪 Se déconnecter</button>
+                    </form>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="account-main">
+                <!-- Stats -->
+                <div class="account-stats">
+                    <div class="account-stat">
+                        <span class="account-stat-icon">📦</span>
+                        <div>
+                            <strong>@Model.TotalOrders</strong>
+                            <span>Commande(s)</span>
+                        </div>
+                    </div>
+                    <div class="account-stat">
+                        <span class="account-stat-icon">💰</span>
+                        <div>
+                            <strong>@BookStore.Helpers.CurrencyHelper.FormatTND(Model.TotalSpent)</strong>
+                            <span>Total dépensé</span>
+                        </div>
+                    </div>
+                    <div class="account-stat">
+                        <span class="account-stat-icon">📚</span>
+                        <div>
+                            <strong>@Model.RecentOrders.SelectMany(o => o.Items).Sum(i => i.Quantity)</strong>
+                            <span>Livres achetés</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="account-section">
+                    <div class="section-header" style="margin-bottom: 20px;">
+                        <h2 class="section-title-sm" style="margin-bottom:0">Commandes récentes</h2>
+                        @if (Model.TotalOrders > 3)
+                        {
+                            <a href="/compte/commandes" class="see-all">Voir tout (@Model.TotalOrders) →</a>
+                        }
+                    </div>
+
+                    @if (!Model.RecentOrders.Any())
+                    {
+                        <div class="empty-state" style="padding: 40px 0;">
+                            <div class="empty-icon">📭</div>
+                            <p>Aucune commande pour l'instant.</p>
+                            <a href="/livres" class="btn btn--primary">Explorer le catalogue</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="orders-list">
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <partial name="_OrderCard" model="order" />
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

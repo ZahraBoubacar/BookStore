@@ -1,0 +1,111 @@
+@model BookStore.Models.Order
+@{
+    ViewData["Title"] = "Commande " + Model.Id;
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+    var statusLabels = new Dictionary<BookStore.Models.OrderStatus, (string label, string css, string icon)>
+    {
+        [BookStore.Models.OrderStatus.Confirmed]  = ("Confirmée",   "status--confirmed",  "✅"),
+        [BookStore.Models.OrderStatus.Processing] = ("En préparation","status--processing","⚙️"),
+        [BookStore.Models.OrderStatus.Shipped]    = ("Expédiée",    "status--shipped",    "🚚"),
+        [BookStore.Models.OrderStatus.Delivered]  = ("Livrée",      "status--delivered",  "📬"),
+        [BookStore.Models.OrderStatus.Cancelled]  = ("Annulée",     "status--cancelled",  "❌"),
+    };
+    var (label, css, icon) = statusLabels[Model.Status];
+}
+
+<div class="account-page">
+    <div class="container" style="padding-top: 40px;">
+        <nav class="breadcrumb">
+            <a href="/compte/tableau-de-bord">Mon espace</a> <span>/</span>
+            <a href="/compte/commandes">Commandes</a> <span>/</span>
+            <span>@Model.Id</span>
+        </nav>
+
+        <div class="order-detail-header">
+            <div>
+                <h1 class="page-title">Commande <span class="order-id-display">@Model.Id</span></h1>
+                <p class="order-detail-date">Passée le @Model.OrderDate.ToString("dd MMMM yyyy à HH:mm")</p>
+            </div>
+            <span class="order-status @css">@icon @label</span>
+        </div>
+
+        <!-- Timeline -->
+        <div class="order-timeline">
+            @{
+                var steps = new[] {
+                    (BookStore.Models.OrderStatus.Confirmed,  "Confirmée",       "✅"),
+                    (BookStore.Models.OrderStatus.Processing, "En préparation",  "⚙️"),
+                    (BookStore.Models.OrderStatus.Shipped,    "Expédiée",        "🚚"),
+                    (BookStore.Models.OrderStatus.Delivered,  "Livrée",          "📬"),
+                };
+                int currentStep = (int)Model.Status;
+            }
+            @foreach (var (stepStatus, stepLabel, stepIcon) in steps)
+            {
+                var stepIdx = (int)stepStatus;
+                var isDone = currentStep >= stepIdx && Model.Status != BookStore.Models.OrderStatus.Cancelled;
+                <div class="timeline-step @(isDone ? "timeline-step--done" : "")">
+                    <div class="timeline-dot">@(isDone ? "✓" : stepIcon)</div>
+                    <span>@stepLabel</span>
+                </div>
+                @if (stepStatus != BookStore.Models.OrderStatus.Delivered)
+                {
+                    <div class="timeline-line @(isDone && currentStep > stepIdx ? "timeline-line--done" : "")"></div>
+                }
+            }
+        </div>
+
+        <div class="order-detail-layout">
+            <!-- Items -->
+            <div class="order-detail-items">
+                <h2 class="account-section-title">Articles commandés</h2>
+                @foreach (var item in Model.Items)
+                {
+                    <div class="order-item-detail">
+                        <a href="/livres/details/@item.Slug">
+                            <img src="@item.CoverImageUrl" alt="@item.BookTitle" class="order-item-detail-img" onerror="this.src='/images/book-placeholder.svg'" />
+                        </a>
+                        <div class="order-item-detail-info">
+                            <h3><a href="/livres/details/@item.Slug">@item.BookTitle</a></h3>
+                            <p>@item.AuthorName</p>
+                            <p class="order-item-qty">Quantité : @item.Quantity</p>
+                        </div>
+                        <div class="order-item-detail-price">
+                            <span>@BookStore.Helpers.CurrencyHelper.FormatTND(item.Total)</span>
+                            <small>@BookStore.Helpers.CurrencyHelper.FormatTND(item.UnitPrice) / unité</small>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Summary -->
+            <div class="order-detail-summary">
+                <div class="summary-card">
+                    <h2 class="summary-title">Récapitulatif</h2>
+                    <div class="summary-lines">
+                        <div class="summary-line"><span>Sous-total</span><span>@BookStore.Helpers.CurrencyHelper.FormatTND(Model.Subtotal)</span></div>
+                        <div class="summary-line"><span>Livraison</span><span>@(Model.Shipping == 0 ? "Gratuite" : BookStore.Helpers.CurrencyHelper.FormatTND(Model.Shipping))</span></div>
+                        <div class="summary-divider"></div>
+                        <div class="summary-line summary-line--total"><span>Total</span><span>@BookStore.Helpers.CurrencyHelper.FormatTND(Model.Total)</span></div>
+                    </div>
+                </div>
+
+                <div class="order-detail-info-card">
+                    <h3>Livraison</h3>
+                    <p>@Model.ShippingAddress</p>
+                    @if (Model.EstimatedDelivery.HasValue)
+                    {
+                        <p class="delivery-date">📅 Livraison estimée : <strong>@Model.EstimatedDelivery.Value.ToString("dd MMMM yyyy")</strong></p>
+                    }
+                </div>
+
+                <div class="order-detail-info-card">
+                    <h3>Paiement</h3>
+                    <p>💳 @Model.PaymentMethod</p>
+                </div>
+
+                <a href="/compte/commandes" class="btn btn--outline btn--full">← Retour aux commandes</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,90 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Inscription";
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="/" class="auth-logo">📚 Kitab</a>
+            <h1 class="auth-title">Créer un compte</h1>
+            <p class="auth-subtitle">Rejoignez notre communauté de lecteurs.</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.Values.Any(v => v.Errors.Any()))
+        {
+            <div class="alert alert--error">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <p>@error.ErrorMessage</p>
+                }
+            </div>
+        }
+
+        <form action="/compte/inscription" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label asp-for="FirstName">Prénom</label>
+                    <input asp-for="FirstName" class="form-control" placeholder="Marie" autocomplete="given-name" />
+                    <span asp-validation-for="FirstName" class="field-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="LastName">Nom</label>
+                    <input asp-for="LastName" class="form-control" placeholder="Dupont" autocomplete="family-name" />
+                    <span asp-validation-for="LastName" class="field-error"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email">Email</label>
+                <input asp-for="Email" class="form-control" placeholder="votre@email.fr" autocomplete="email" />
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password">Mot de passe</label>
+                <div class="input-with-toggle">
+                    <input asp-for="Password" class="form-control" placeholder="Au moins 6 caractères" id="pwd" />
+                    <button type="button" class="toggle-pwd" onclick="togglePwd('pwd', this)">👁</button>
+                </div>
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ConfirmPassword">Confirmer le mot de passe</label>
+                <div class="input-with-toggle">
+                    <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" id="pwd2" />
+                    <button type="button" class="toggle-pwd" onclick="togglePwd('pwd2', this)">👁</button>
+                </div>
+                <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--full btn--lg">Créer mon compte</button>
+        </form>
+
+        <p class="auth-switch">
+            Déjà un compte ?
+            <a href="/compte/connexion">Se connecter →</a>
+        </p>
+    </div>
+
+    <div class="auth-visual">
+        <div class="auth-quote">
+            <blockquote>« Il n'y a pas d'ami aussi fidèle qu'un livre. »</blockquote>
+            <cite>— Ernest Hemingway</cite>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function togglePwd(id, btn) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.textContent = input.type === 'password' ? '👁' : '🙈';
+}
+</script>
+}

@@ -1,0 +1,148 @@
+@{
+    ViewData["Title"] = "Administration";
+    var stats = ViewBag.Stats as BookStore.Controllers.AdminStats;
+    var books = ViewBag.Books as List<BookStore.Models.Book> ?? new();
+    var cats  = ViewBag.Categories as List<BookStore.Models.Category> ?? new();
+}
+
+<div class="admin-page">
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="container">
+            <div class="admin-header-inner">
+                <div>
+                    <p class="admin-label">Panel d'administration</p>
+                    <h1 class="admin-title">Tableau de bord</h1>
+                </div>
+                <a href="/admin/livres/ajouter" class="btn btn--primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    Ajouter un livre
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 40px 32px 72px;">
+        <!-- Stats Cards -->
+        <div class="admin-stats">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">📚</div>
+                <div class="admin-stat-body">
+                    <strong>@stats?.TotalBooks</strong>
+                    <span>Livres</span>
+                </div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">✍️</div>
+                <div class="admin-stat-body">
+                    <strong>@stats?.TotalAuthors</strong>
+                    <span>Auteurs</span>
+                </div>
+            </div>
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">📦</div>
+                <div class="admin-stat-body">
+                    <strong>@stats?.TotalOrders</strong>
+                    <span>Commandes</span>
+                </div>
+            </div>
+            <div class="admin-stat-card admin-stat-card--gold">
+                <div class="admin-stat-icon">💰</div>
+                <div class="admin-stat-body">
+                    <strong>@BookStore.Helpers.CurrencyHelper.FormatTND(stats?.TotalRevenue ?? 0)</strong>
+                    <span>Chiffre d'affaires</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        @if (stats?.RecentOrders?.Any() == true)
+        {
+            <div class="admin-section">
+                <h2 class="admin-section-title">Commandes récentes</h2>
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>N° Commande</th>
+                                <th>Client</th>
+                                <th>Date</th>
+                                <th>Articles</th>
+                                <th>Total</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in stats.RecentOrders)
+                            {
+                                <tr>
+                                    <td><code>@order.Id</code></td>
+                                    <td>@order.UserId</td>
+                                    <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@order.TotalItems</td>
+                                    <td><strong>@BookStore.Helpers.CurrencyHelper.FormatTND(order.Total)</strong></td>
+                                    <td><span class="order-status status--@order.Status.ToString().ToLower()">@order.Status</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- Books Management -->
+        <div class="admin-section">
+            <div class="admin-section-header">
+                <h2 class="admin-section-title">Gestion des livres</h2>
+                <a href="/admin/livres/ajouter" class="btn btn--outline btn--sm">+ Ajouter</a>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Couverture</th>
+                            <th>Titre</th>
+                            <th>Auteur</th>
+                            <th>Catégorie</th>
+                            <th>Prix</th>
+                            <th>Note</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var book in books)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@book.CoverImageUrl" alt="@book.Title" class="admin-book-thumb"
+                                         onerror="this.src='/images/book-placeholder.svg'" />
+                                </td>
+                                <td>
+                                    <a href="/livres/details/@book.Slug" class="admin-book-title" target="_blank">
+                                        @book.Title
+                                    </a>
+                                    @if (book.IsNew) { <span class="badge badge--new" style="font-size:9px">Nouveau</span> }
+                                    @if (book.IsBestseller) { <span class="badge badge--bestseller" style="font-size:9px">Best</span> }
+                                </td>
+                                <td>@book.Author.Name</td>
+                                <td>@book.Category.Icon @book.Category.Name</td>
+                                <td><strong>@BookStore.Helpers.CurrencyHelper.FormatTND(book.Price)</strong></td>
+                                <td>⭐ @book.Rating.ToString("F1")</td>
+                                <td>
+                                    <div class="admin-actions">
+                                        <a href="/admin/livres/modifier/@book.Id" class="admin-btn admin-btn--edit">✏️ Modifier</a>
+                                        <form action="/admin/livres/supprimer/@book.Id" method="post" style="display:inline"
+                                              onsubmit="return confirm('Supprimer ce livre ?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="admin-btn admin-btn--delete">🗑 Supprimer</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

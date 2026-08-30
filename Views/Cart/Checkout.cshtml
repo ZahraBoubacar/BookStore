@@ -1,0 +1,144 @@
+@model BookStore.Models.Cart
+@{
+    ViewData["Title"] = "Finaliser la commande";
+    ViewBag.Categories = new List<BookStore.Models.Category>();
+}
+
+<div class="checkout-page">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">Accueil</a> <span>/</span>
+            <a href="/panier">Panier</a> <span>/</span>
+            <span>Commande</span>
+        </div>
+        <h1 class="page-title">Finaliser la commande</h1>
+
+        <div class="checkout-layout">
+            <div class="checkout-form-col">
+                <div class="checkout-section">
+                    <h2 class="checkout-section-title"><span class="step-num">1</span> Informations de livraison</h2>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Prénom</label><input type="text" class="form-control" placeholder="Mohamed" /></div>
+                        <div class="form-group"><label>Nom</label><input type="text" class="form-control" placeholder="Ben Ali" /></div>
+                        <div class="form-group form-group--full"><label>Email</label><input type="email" class="form-control" placeholder="vous@exemple.tn" /></div>
+                        <div class="form-group form-group--full"><label>Téléphone</label><input type="tel" class="form-control" placeholder="+216 XX XXX XXX" /></div>
+                        <div class="form-group form-group--full"><label>Adresse</label><input type="text" class="form-control" placeholder="12 Avenue Habib Bourguiba" /></div>
+                        <div class="form-group"><label>Code postal</label><input type="text" class="form-control" placeholder="1000" /></div>
+                        <div class="form-group">
+                            <label>Gouvernorat</label>
+                            <select class="form-control form-select">
+                                <option>Tunis</option><option>Ariana</option><option>Ben Arous</option>
+                                <option>Manouba</option><option>Nabeul</option><option>Zaghouan</option>
+                                <option>Bizerte</option><option>Béja</option><option>Jendouba</option>
+                                <option>Kef</option><option>Siliana</option><option>Sousse</option>
+                                <option>Monastir</option><option>Mahdia</option><option>Sfax</option>
+                                <option>Kairouan</option><option>Kasserine</option><option>Sidi Bouzid</option>
+                                <option>Gabès</option><option>Medenine</option><option>Tataouine</option>
+                                <option>Gafsa</option><option>Tozeur</option><option>Kébili</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout-section">
+                    <h2 class="checkout-section-title"><span class="step-num">2</span> Mode de livraison</h2>
+                    <div class="shipping-options">
+                        <label class="shipping-option shipping-option--selected">
+                            <input type="radio" name="shipping" value="standard" checked />
+                            <div class="shipping-option-info">
+                                <span class="shipping-name">Standard (3-5 jours)</span>
+                                <span class="shipping-desc">Livraison à domicile partout en Tunisie</span>
+                            </div>
+                            <span class="shipping-price">@(Model.Shipping == 0 ? "Gratuit" : BookStore.Helpers.CurrencyHelper.FormatTND(Model.Shipping))</span>
+                        </label>
+                        <label class="shipping-option">
+                            <input type="radio" name="shipping" value="express" />
+                            <div class="shipping-option-info">
+                                <span class="shipping-name">Express (24h)</span>
+                                <span class="shipping-desc">Livraison à domicile le lendemain</span>
+                            </div>
+                            <span class="shipping-price">12,000 DT</span>
+                        </label>
+                        <label class="shipping-option">
+                            <input type="radio" name="shipping" value="pickup" />
+                            <div class="shipping-option-info">
+                                <span class="shipping-name">Retrait en magasin</span>
+                                <span class="shipping-desc">Avenue Habib Bourguiba, Tunis</span>
+                            </div>
+                            <span class="shipping-price">Gratuit</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="checkout-section">
+                    <h2 class="checkout-section-title"><span class="step-num">3</span> Paiement</h2>
+                    <div class="payment-options">
+                        <label class="payment-option payment-option--selected">
+                            <input type="radio" name="payment" value="card" checked />
+                            <span>💳 Carte bancaire (Visa / Mastercard)</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="cash" />
+                            <span>💵 Paiement à la livraison</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="d17" />
+                            <span>📱 D17 (paiement mobile)</span>
+                        </label>
+                    </div>
+                    <div class="form-grid" style="margin-top:16px">
+                        <div class="form-group form-group--full"><label>Numéro de carte</label><input type="text" class="form-control" placeholder="1234 5678 9012 3456" /></div>
+                        <div class="form-group"><label>Date d'expiration</label><input type="text" class="form-control" placeholder="MM/AA" /></div>
+                        <div class="form-group"><label>CVV</label><input type="text" class="form-control" placeholder="123" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="checkout-summary-col">
+                <div class="summary-card summary-card--sticky">
+                    <h2 class="summary-title">Votre commande</h2>
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="checkout-item">
+                            <img src="@item.Book.CoverImageUrl" alt="@item.Book.Title" class="checkout-item-img"
+                                 onerror="this.src='/images/book-placeholder.svg'" />
+                            <div class="checkout-item-info">
+                                <p class="checkout-item-title">@item.Book.Title</p>
+                                <p class="checkout-item-author">@item.Book.Author.Name</p>
+                                <p class="checkout-item-qty">Qté : @item.Quantity</p>
+                            </div>
+                            <span class="checkout-item-price">@BookStore.Helpers.CurrencyHelper.FormatTND(item.Total)</span>
+                        </div>
+                    }
+                    <div class="summary-divider"></div>
+                    <div class="summary-lines">
+                        <div class="summary-line">
+                            <span>Sous-total</span>
+                            <span>@BookStore.Helpers.CurrencyHelper.FormatTND(Model.Subtotal)</span>
+                        </div>
+                        <div class="summary-line">
+                            <span>Livraison</span>
+                            <span>@(Model.Shipping == 0 ? "Gratuite" : BookStore.Helpers.CurrencyHelper.FormatTND(Model.Shipping))</span>
+                        </div>
+                        <div class="summary-divider"></div>
+                        <div class="summary-line summary-line--total">
+                            <span>Total TTC</span>
+                            <span>@BookStore.Helpers.CurrencyHelper.FormatTND(Model.Total)</span>
+                        </div>
+                    </div>
+                    <form action="/panier/PlaceOrder" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn--primary btn--full btn--lg">✓ Confirmer et payer</button>
+                    </form>
+                    <p class="summary-secure">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                        Paiement sécurisé SSL 256 bits
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

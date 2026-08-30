@@ -1,0 +1,116 @@
+@model BookStore.Models.Book
+@{
+    ViewData["Title"] = "Modifier : " + Model.Title;
+    var authors = ViewBag.Authors as List<BookStore.Models.Author> ?? new();
+    var cats    = ViewBag.Categories as List<BookStore.Models.Category> ?? new();
+    ViewBag.Categories2 = cats;
+}
+
+<div class="admin-form-page">
+    <div class="container">
+        <nav class="breadcrumb"><a href="/admin">Admin</a><span>/</span><span>Modifier</span></nav>
+        <h1 class="page-title">Modifier <em>@Model.Title</em></h1>
+
+        <form asp-action="EditBook" method="post" class="admin-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Slug" />
+            <input type="hidden" asp-for="Reviews" />
+
+            <div class="admin-form-grid">
+                <div class="admin-form-main">
+                    <div class="admin-form-section">
+                        <h2 class="admin-form-section-title">Informations générales</h2>
+                        <div class="form-group">
+                            <label>Titre *</label>
+                            <input asp-for="Title" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Description courte</label>
+                            <input asp-for="ShortDescription" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>Description complète</label>
+                            <textarea asp-for="Description" class="form-control form-textarea" rows="5"></textarea>
+                        </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label>Auteur</label>
+                                <select asp-for="AuthorId" class="form-control form-select">
+                                    @foreach (var a in authors) { <option value="@a.Id" selected="@(a.Id == Model.AuthorId)">@a.Name</option> }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Catégorie</label>
+                                <select asp-for="CategoryId" class="form-control form-select">
+                                    @foreach (var c in cats) { <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Icon @c.Name</option> }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-section">
+                        <h2 class="admin-form-section-title">Prix & Disponibilité</h2>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label>Prix (DT)</label>
+                                <input asp-for="Price" class="form-control" type="number" step="0.001" min="0" />
+                            </div>
+                            <div class="form-group">
+                                <label>Prix barré (DT)</label>
+                                <input asp-for="OriginalPrice" class="form-control" type="number" step="0.001" min="0" />
+                            </div>
+                        </div>
+                        <div class="admin-checkboxes">
+                            <label class="admin-checkbox"><input asp-for="IsFeatured"  type="checkbox" /> Mis en avant</label>
+                            <label class="admin-checkbox"><input asp-for="IsBestseller" type="checkbox" /> Bestseller</label>
+                            <label class="admin-checkbox"><input asp-for="IsNew"       type="checkbox" /> Nouveau</label>
+                            <label class="admin-checkbox"><input asp-for="IsAvailable" type="checkbox" /> Disponible</label>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-section">
+                        <h2 class="admin-form-section-title">Détails</h2>
+                        <div class="form-row-2">
+                            <div class="form-group"><label>ISBN</label><input asp-for="ISBN" class="form-control" /></div>
+                            <div class="form-group"><label>Pages</label><input asp-for="Pages" class="form-control" type="number" /></div>
+                            <div class="form-group"><label>Éditeur</label><input asp-for="Publisher" class="form-control" /></div>
+                            <div class="form-group"><label>Publication</label><input asp-for="PublishedDate" class="form-control" type="date" /></div>
+                            <div class="form-group"><label>Note</label><input asp-for="Rating" class="form-control" type="number" step="0.1" min="0" max="5" /></div>
+                            <div class="form-group"><label>Nb avis</label><input asp-for="ReviewCount" class="form-control" type="number" /></div>
+                        </div>
+                        <div class="form-group">
+                            <label>URL couverture</label>
+                            <input asp-for="CoverImageUrl" class="form-control" id="coverUrl" oninput="previewCover(this.value)" />
+                        </div>
+                        <div class="cover-preview" id="coverPreview">
+                            <img id="coverImg" src="@Model.CoverImageUrl" alt="Aperçu" onerror="this.src='/images/book-placeholder.svg'" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-form-sidebar">
+                    <div class="admin-form-section">
+                        <h2 class="admin-form-section-title">Actions</h2>
+                        <button type="submit" class="btn btn--primary btn--full">✓ Enregistrer</button>
+                        <a href="/admin" class="btn btn--outline btn--full" style="margin-top:10px">Annuler</a>
+                        <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light);">
+                            <form action="/admin/livres/supprimer/@Model.Id" method="post" onsubmit="return confirm('Supprimer définitivement ?')">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn--full" style="background:rgba(184,92,56,0.08);color:var(--terracotta);border:1.5px solid rgba(184,92,56,0.25)">🗑 Supprimer ce livre</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function previewCover(url) {
+    document.getElementById('coverImg').src = url || '/images/book-placeholder.svg';
+}
+</script>
+}
